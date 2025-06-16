@@ -10,7 +10,7 @@ from Search_3D import Astar3D
 from Search_3D.utils3D import getDist, getRay, g_Space, Heuristic, getNearest, isinbound, isinball, \
     cost, obstacleFree, isCollide
 from Search_3D.plot_util3D import visualization
-import queue
+from Search_3D import queue
 import pyrr
 import time
 

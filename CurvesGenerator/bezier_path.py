@@ -8,7 +8,7 @@ modified: huiming zhou
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import comb
-import draw
+from CurvesGenerator import draw
 
 
 def calc_4points_bezier_path(sx, sy, syaw, gx, gy, gyaw, offset):

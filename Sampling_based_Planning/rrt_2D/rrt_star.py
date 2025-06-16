@@ -10,7 +10,8 @@ import numpy as np
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) +
                 "/../../Sampling_based_Planning/")
-
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) +
+                "/../../")
 from Sampling_based_Planning.rrt_2D import env, plotting, utils, queue
 
 
@@ -49,11 +50,11 @@ class RrtStar:
             node_near = self.nearest_neighbor(self.vertex, node_rand)
             node_new = self.new_state(node_near, node_rand)
 
-            if k % 500 == 0:
-                print(k)
-
+            # if k % 500 == 0:
+            # print("iteration: ", k, " ", node_new.x, " ", node_new.y)
             if node_new and not self.utils.is_collision(node_near, node_new):
                 neighbor_index = self.find_near_neighbor(node_new)
+                # print("add new node: ", k, " ", node_new.x, " ", node_new.y)
                 self.vertex.append(node_new)
 
                 if neighbor_index:
@@ -62,8 +63,8 @@ class RrtStar:
 
         index = self.search_goal_parent()
         self.path = self.extract_path(self.vertex[index])
-
-        self.plotting.animation(self.vertex, self.path, "rrt*, N = " + str(self.iter_max))
+        # self.plotting.animation(self.vertex, self.path, "rrt*, N = " + str(self.iter_max))
+        return self.path
 
     def new_state(self, node_start, node_goal):
         dist, theta = self.get_distance_and_angle(node_start, node_goal)
@@ -176,7 +177,7 @@ def main():
     x_start = (18, 8)  # Starting node
     x_goal = (37, 18)  # Goal node
 
-    rrt_star = RrtStar(x_start, x_goal, 10, 0.10, 20, 10000)
+    rrt_star = RrtStar(x_start, x_goal, 10, 0.10, 20, 1000)
     rrt_star.planning()
 
 

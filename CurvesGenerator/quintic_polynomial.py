@@ -6,7 +6,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-import draw
+from CurvesGenerator import draw
 
 
 class QuinticPolynomial:
