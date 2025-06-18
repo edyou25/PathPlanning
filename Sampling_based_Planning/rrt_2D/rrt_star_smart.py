@@ -39,7 +39,7 @@ class RrtStarSmart:
         self.plotting = plotting.Plotting(x_start, x_goal)
         self.utils = utils.Utils()
 
-        self.fig, self.ax = plt.subplots()
+        # self.fig, self.ax = plt.subplots()
         self.delta = self.utils.delta
         self.x_range = self.env.x_range
         self.y_range = self.env.y_range
@@ -59,10 +59,9 @@ class RrtStarSmart:
         b = 2
         InitPathFlag = False
         self.ReformObsVertex()
-
         for k in range(self.iter_max):
-            if k % 200 == 0:
-                print(k)
+            # if k % 200 == 0:
+            #     print(k)
 
             if (k - n) % b == 0 and len(self.beacons) > 0:
                 x_rand = self.Sample(self.beacons)
@@ -95,14 +94,15 @@ class RrtStarSmart:
 
                 if InitPathFlag:
                     self.PathOptimization(x_new)
-                if k % 5 == 0:
-                    self.animation()
+                # if k % 5 == 0:
+                #     self.animation()
 
         self.path = self.ExtractPath()
-        self.animation()
-        plt.plot([x for x, _ in self.path], [y for _, y in self.path], '-r')
-        plt.pause(0.01)
-        plt.show()
+        return self.path
+        # self.animation()
+        # plt.plot([x for x, _ in self.path], [y for _, y in self.path], '-r')
+        # plt.pause(0.01)
+        # plt.show()
 
     def PathOptimization(self, node):
         direct_cost_new = 0.0

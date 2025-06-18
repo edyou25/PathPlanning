@@ -80,8 +80,18 @@ class PathPlannerManager:
             'resolution': 1.0
         }
         
+        configs[PlannerType.BIDIRECTIONAL_A_STAR_2D] = {
+            'heuristic_type': 'manhattan',
+            'resolution': 1.0
+        }
+        
         # 3D搜索算法配置
         configs[PlannerType.A_STAR_3D] = {
+            'resolution': 0.5,
+            'weight': 1.0
+        }
+        
+        configs[PlannerType.BIDIRECTIONAL_A_STAR_3D] = {
             'resolution': 0.5,
             'weight': 1.0
         }
@@ -91,7 +101,22 @@ class PathPlannerManager:
             'step_len': 0.5,
             'goal_sample_rate': 0.1,
             'search_radius': 1.0,
-            'iter_max': 4000
+            'iter_max': 2000
+        }
+        
+        configs[PlannerType.DUBINS_RRT_STAR_2D] = {
+            'step_len': 30.0,
+            'goal_sample_rate': 0.1,
+            'search_radius': 50.0,
+            'iter_max': 250,
+            'vehicle_radius': 2.0
+        }
+        
+        configs[PlannerType.RRT_STAR_SMART_2D] = {
+            'step_len': 0.5,
+            'goal_sample_rate': 0.1,
+            'search_radius': 1.0,
+            'iter_max': 2000
         }
         
         # 3D采样算法配置
@@ -101,9 +126,24 @@ class PathPlannerManager:
             'goal_bias': 0.1
         }
         
+        configs[PlannerType.ABIT_STAR_3D] = {
+            'max_iter': 1000,
+            'step_size': 0.5,
+            'goal_bias': 0.1
+        }
+        
         # 曲线生成器配置
         configs[PlannerType.CUBIC_SPLINE] = {
             'resolution': 0.1
+        }
+        
+        configs[PlannerType.BEZIER_PATH] = {
+            'offset': 3.0
+        }
+        
+        configs[PlannerType.DUBINS_PATH] = {
+            'curvature': 1.0,
+            'step_size': 0.1
         }
         
         return configs
@@ -115,35 +155,86 @@ class PathPlannerManager:
     def get_planner_info(self, planner_type: PlannerType) -> Dict[str, str]:
         """获取规划器信息"""
         info_map = {
+            # 2D搜索算法
             PlannerType.A_STAR_2D: {
                 'name': 'A* 2D',
                 'dimension': PlannerDimension.TWO_D.value,
                 'category': PlannerCategory.SEARCH_BASED.value,
                 'description': '2D A*搜索算法'
             },
+            PlannerType.BIDIRECTIONAL_A_STAR_2D: {
+                'name': 'Bidirectional A* 2D',
+                'dimension': PlannerDimension.TWO_D.value,
+                'category': PlannerCategory.SEARCH_BASED.value,
+                'description': '2D双向A*搜索算法'
+            },
+            
+            # 3D搜索算法
             PlannerType.A_STAR_3D: {
                 'name': 'A* 3D',
                 'dimension': PlannerDimension.THREE_D.value,
                 'category': PlannerCategory.SEARCH_BASED.value,
                 'description': '3D A*搜索算法'
             },
+            PlannerType.BIDIRECTIONAL_A_STAR_3D: {
+                'name': 'Bidirectional A* 3D',
+                'dimension': PlannerDimension.THREE_D.value,
+                'category': PlannerCategory.SEARCH_BASED.value,
+                'description': '3D双向A*搜索算法'
+            },
+            
+            # 2D采样算法
             PlannerType.RRT_STAR_2D: {
                 'name': 'RRT* 2D',
                 'dimension': PlannerDimension.TWO_D.value,
                 'category': PlannerCategory.SAMPLING_BASED.value,
                 'description': '2D RRT*采样算法'
             },
+            PlannerType.DUBINS_RRT_STAR_2D: {
+                'name': 'Dubins RRT* 2D',
+                'dimension': PlannerDimension.TWO_D.value,
+                'category': PlannerCategory.SAMPLING_BASED.value,
+                'description': '2D Dubins RRT*采样算法（考虑车辆转弯约束）'
+            },
+            PlannerType.RRT_STAR_SMART_2D: {
+                'name': 'RRT* Smart 2D',
+                'dimension': PlannerDimension.TWO_D.value,
+                'category': PlannerCategory.SAMPLING_BASED.value,
+                'description': '2D RRT* Smart采样算法（智能采样）'
+            },
+            
+            # 3D采样算法
             PlannerType.RRT_CONNECT_3D: {
                 'name': 'RRT-Connect 3D',
                 'dimension': PlannerDimension.THREE_D.value,
                 'category': PlannerCategory.SAMPLING_BASED.value,
                 'description': '3D RRT-Connect双向采样算法'
             },
+            PlannerType.ABIT_STAR_3D: {
+                'name': 'ABIT* 3D',
+                'dimension': PlannerDimension.THREE_D.value,
+                'category': PlannerCategory.SAMPLING_BASED.value,
+                'description': '3D ABIT*采样算法（先进批量信息树）'
+            },
+            
+            # 曲线生成器
             PlannerType.CUBIC_SPLINE: {
                 'name': 'Cubic Spline',
                 'dimension': PlannerDimension.CURVE.value,
                 'category': PlannerCategory.CURVE_GENERATOR.value,
                 'description': '三次样条曲线生成器'
+            },
+            PlannerType.BEZIER_PATH: {
+                'name': 'Bezier Path',
+                'dimension': PlannerDimension.CURVE.value,
+                'category': PlannerCategory.CURVE_GENERATOR.value,
+                'description': '贝塞尔曲线路径生成器'
+            },
+            PlannerType.DUBINS_PATH: {
+                'name': 'Dubins Path',
+                'dimension': PlannerDimension.CURVE.value,
+                'category': PlannerCategory.CURVE_GENERATOR.value,
+                'description': 'Dubins路径生成器（最短转弯路径）'
             }
         }
         return info_map.get(planner_type, {'name': 'Unknown', 'dimension': 'Unknown', 'category': 'Unknown', 'description': 'Unknown planner'})
@@ -216,16 +307,39 @@ class PathPlannerManager:
     
     def _call_planner(self, start, goal, planner_type, config):
         """调用具体的规划器"""
+        # 2D搜索算法
         if planner_type == PlannerType.A_STAR_2D:
             return self._call_astar_2d(start, goal, config)
+        elif planner_type == PlannerType.BIDIRECTIONAL_A_STAR_2D:
+            return self._call_bidirectional_astar_2d(start, goal, config)
+        
+        # 3D搜索算法
         elif planner_type == PlannerType.A_STAR_3D:
             return self._call_astar_3d(start, goal, config)
+        elif planner_type == PlannerType.BIDIRECTIONAL_A_STAR_3D:
+            return self._call_bidirectional_astar_3d(start, goal, config)
+        
+        # 2D采样算法
         elif planner_type == PlannerType.RRT_STAR_2D:
             return self._call_rrt_star_2d(start, goal, config)
+        elif planner_type == PlannerType.DUBINS_RRT_STAR_2D:
+            return self._call_dubins_rrt_star_2d(start, goal, config)
+        elif planner_type == PlannerType.RRT_STAR_SMART_2D:
+            return self._call_rrt_star_smart_2d(start, goal, config)
+        
+        # 3D采样算法
         elif planner_type == PlannerType.RRT_CONNECT_3D:
             return self._call_rrt_connect_3d(start, goal, config)
+        elif planner_type == PlannerType.ABIT_STAR_3D:
+            return self._call_abit_star_3d(start, goal, config)
+        
+        # 曲线生成器
         elif planner_type == PlannerType.CUBIC_SPLINE:
             return self._call_cubic_spline(start, goal, config)
+        elif planner_type == PlannerType.BEZIER_PATH:
+            return self._call_bezier_path(start, goal, config)
+        elif planner_type == PlannerType.DUBINS_PATH:
+            return self._call_dubins_path(start, goal, config)
         else:
             raise NotImplementedError(f"规划器 {planner_type.value} 尚未实现")
     
@@ -285,7 +399,27 @@ class PathPlannerManager:
         
         success = planner.run()
         if success and planner.Path:
-            return [(float(p[0]), float(p[1]), float(p[2])) for p in planner.Path]
+            # 3D A*的Path格式是[[current_point, parent_point], ...]的边列表
+            # 需要提取出连续的路径点
+            path_points = []
+            
+            # 从路径边重建完整路径
+            if planner.Path:
+                # 添加最后一个点（目标点附近）
+                path_points.append(planner.lastpoint)
+                
+                # 逆向遍历路径，从目标到起始
+                current = planner.lastpoint
+                while current in planner.Parent:
+                    parent = planner.Parent[current]
+                    path_points.append(parent)
+                    current = parent
+                
+                # 反转路径，使其从起始到目标
+                path_points.reverse()
+                
+                # 转换为浮点坐标
+                return [(float(p[0]), float(p[1]), float(p[2])) for p in path_points]
         return None
     
     def _call_rrt_star_2d(self, start, goal, config):
@@ -311,9 +445,15 @@ class PathPlannerManager:
         planner = rrt_connect()
         planner.maxiter = config.get('max_iter', 1000)
         
+        # Set start and goal in environment
+        planner.env.start = np.array(start)
+        planner.env.goal = np.array(goal)
+        
         result = planner.RRT_CONNECT_PLANNER(start, goal)
         if planner.done and planner.Path:
-            return [(float(p[0]), float(p[1]), float(p[2])) for p in planner.Path]
+            # Convert to float tuples
+            path = [(float(p[0]), float(p[1]), float(p[2])) for p in planner.Path]
+            return path
         return None
     
     def _call_cubic_spline(self, start, goal, config):
@@ -322,6 +462,7 @@ class PathPlannerManager:
         
         # 创建简单的waypoints
         waypoints = [start, goal]
+        waypoints = self._call_astar_2d(start, goal, config)
         
         # 如果只有两个点，添加中间点
         if len(waypoints) == 2:
@@ -336,15 +477,375 @@ class PathPlannerManager:
         
         # 生成路径点
         resolution = config.get('resolution', 0.1)
-        t_values = np.arange(0, len(x_coords), resolution)
+        t_values = np.arange(0, spline.s[-1], resolution)
         path = []
         
         for t in t_values:
-            if t < len(x_coords) - 1:
+            if t < len(t_values) - 1:
                 x, y = spline.calc_position(t)
                 path.append((float(x), float(y)))
         
         return path
+    
+    def _call_dubins_rrt_star_2d(self, start, goal, config):
+        """调用2D Dubins RRT*算法"""
+        from Sampling_based_Planning.rrt_2D.dubins_rrt_star import DubinsRRTStar
+        import numpy as np
+        
+        # 默认偏航角
+        sx, sy, syaw = start[0], start[1], np.deg2rad(90)
+        gx, gy, gyaw = goal[0], goal[1], np.deg2rad(0)
+        
+        # 如果起始点和目标点包含偏航角信息
+        if len(start) >= 3:
+            syaw = start[2]
+        if len(goal) >= 3:
+            gyaw = goal[2]
+        
+        planner = DubinsRRTStar(
+            sx, sy, syaw, gx, gy, gyaw,
+            vehicle_radius=config.get('vehicle_radius', 2.0),
+            step_len=config.get('step_len', 30.0),
+            goal_sample_rate=config.get('goal_sample_rate', 0.1),
+            search_radius=config.get('search_radius', 50.0),
+            iter_max=config.get('iter_max', 250)
+        )
+        
+        planner.planning()
+        
+        # 从结果中提取路径
+        if hasattr(planner, 'path') and planner.path:
+            return [(float(p[0]), float(p[1])) for p in planner.path]
+        return None
+    
+    def _call_bidirectional_astar_2d(self, start, goal, config):
+        """调用2D双向A*算法"""
+        # 将浮点坐标转换为整数坐标
+        start_int = (int(round(start[0])), int(round(start[1])))
+        goal_int = (int(round(goal[0])), int(round(goal[1])))
+        
+        try:
+            from Search_based_Planning.Search_2D.Bidirectional_a_star import BidirectionalAStar
+            planner = BidirectionalAStar(start_int, goal_int, config.get('heuristic_type', 'manhattan'))
+            path = planner.searching()
+        except (ImportError, AttributeError):
+            # 如果双向A*不可用，回退到普通A*
+            return self._call_astar_2d(start, goal, config)
+        
+        # 将整数路径坐标转换回浮点数坐标
+        if path:
+            path = [(float(p[0]), float(p[1])) for p in path]
+        
+        return path
+    
+    def _call_bidirectional_astar_3d(self, start, goal, config):
+        """调用3D双向A*算法"""
+        search_3d_path = os.path.join(os.path.dirname(__file__), 'Search_based_Planning', 'Search_3D')
+        if search_3d_path not in sys.path:
+            sys.path.append(search_3d_path)
+        
+        try:
+            from Search_based_Planning.Search_3D.bidirectional_Astar3D import Weighted_A_star
+            planner = Weighted_A_star(resolution=config.get('resolution', 0.5))
+        except (ImportError, AttributeError):
+            # 如果双向A*不可用，回退到普通A*
+            return self._call_astar_3d(start, goal, config)
+        
+        # 设置起始点和目标点
+        planner.env.start = np.array(start)
+        planner.env.goal = np.array(goal)
+        planner.start, planner.goal = tuple(start), tuple(goal)
+        planner.x0, planner.xt = planner.start, planner.goal
+        
+        success = planner.run()
+        if success and planner.Path:
+            # 重建路径
+            path_points = []
+            path_points.append(planner.lastpoint)
+            
+            current = planner.lastpoint
+            while current in planner.Parent:
+                parent = planner.Parent[current]
+                path_points.append(parent)
+                current = parent
+            
+            path_points.reverse()
+            return [(float(p[0]), float(p[1]), float(p[2])) for p in path_points]
+        return None
+    
+    def _call_rrt_star_smart_2d(self, start, goal, config):
+        """调用2D RRT* Smart算法"""
+        try:
+            from Sampling_based_Planning.rrt_2D.rrt_star_smart import RrtStarSmart
+            planner = RrtStarSmart(
+                x_start=start,
+                x_goal=goal,
+                step_len=config.get('step_len', 0.5),
+                goal_sample_rate=config.get('goal_sample_rate', 0.1),
+                search_radius=config.get('search_radius', 1.0),
+                iter_max=config.get('iter_max', 2000)
+            )
+            path = planner.planning()
+            return path
+        except (ImportError, AttributeError):
+            # 如果RRT* Smart不可用，回退到普通RRT*
+            return self._call_rrt_star_2d(start, goal, config)
+    
+    def _call_abit_star_3d(self, start, goal, config):
+        """调用3D ABIT*算法"""
+        try:
+            from Sampling_based_Planning.rrt_3D.ABIT_star3D import BIT_star
+            planner = BIT_star()
+            planner.maxiter = config.get('max_iter', 1000)
+            
+            # 设置起始点和目标点
+            planner.env.start = np.array(start)
+            planner.env.goal = np.array(goal)
+            planner.x0, planner.xt = tuple(start), tuple(goal)
+            
+            planner.run()
+            
+            if planner.done and planner.Path:
+                path = [(float(p[0]), float(p[1]), float(p[2])) for p in planner.Path]
+                return path
+        except (ImportError, AttributeError):
+            # 如果ABIT*不可用，回退到RRT-Connect 3D
+            return self._call_rrt_connect_3d(start, goal, config)
+        return None
+    
+    def _call_bezier_path(self, start, goal, config):
+        """调用贝塞尔路径生成器 - 先用A*找到路径点，再用贝塞尔曲线连接"""
+        try:
+            from CurvesGenerator.bezier_path import calc_4points_bezier_path
+            import numpy as np
+            
+            # 首先使用A*搜索找到路径点
+            astar_config = {'heuristic_type': 'manhattan', 'resolution': 1.0}
+            waypoints = self._call_astar_2d(start, goal, astar_config)
+            
+            if not waypoints or len(waypoints) < 2:
+                print("A*搜索失败，回退到直接贝塞尔路径")
+                # 回退到直接计算贝塞尔路径
+                return self._call_direct_bezier_path(start, goal, config)
+            
+            # 如果路径点太多，进行采样以减少计算量
+            if len(waypoints) > 10:
+                # 等间距采样，保留起始点和终点
+                step = len(waypoints) // 8
+                sampled_waypoints = [waypoints[0]]
+                for i in range(step, len(waypoints) - 1, step):
+                    sampled_waypoints.append(waypoints[i])
+                sampled_waypoints.append(waypoints[-1])
+                waypoints = sampled_waypoints
+            
+            # 使用贝塞尔曲线连接相邻的路径点
+            full_path = []
+            offset = config.get('offset', 3.0)
+            
+            for i in range(len(waypoints) - 1):
+                start_point = waypoints[i]
+                end_point = waypoints[i + 1]
+                
+                # 计算起始和目标的偏航角
+                dx = end_point[0] - start_point[0]
+                dy = end_point[1] - start_point[1]
+                
+                # 计算起始点的偏航角
+                if i == 0:
+                    # 第一段：从起始点方向
+                    syaw = np.arctan2(dy, dx) if len(start) < 3 else start[2]
+                else:
+                    # 中间段：从前一段的方向
+                    prev_point = waypoints[i - 1]
+                    syaw = np.arctan2(start_point[1] - prev_point[1], start_point[0] - prev_point[0])
+                
+                # 计算目标点的偏航角
+                if i == len(waypoints) - 2:
+                    # 最后一段：到目标点方向
+                    gyaw = np.arctan2(dy, dx) if len(goal) < 3 else goal[2]
+                else:
+                    # 中间段：到下一段的方向
+                    next_point = waypoints[i + 2]
+                    gyaw = np.arctan2(next_point[1] - end_point[1], next_point[0] - end_point[0])
+                
+                # 生成贝塞尔曲线段
+                path_segment, _ = calc_4points_bezier_path(
+                    start_point[0], start_point[1], syaw,
+                    end_point[0], end_point[1], gyaw,
+                    offset
+                )
+                
+                if path_segment is not None and len(path_segment) > 0:
+                    # 避免重复添加连接点
+                    if i == 0:
+                        full_path.extend([(float(p[0]), float(p[1])) for p in path_segment])
+                    else:
+                        full_path.extend([(float(p[0]), float(p[1])) for p in path_segment[1:]])
+            
+            if full_path:
+                return full_path
+                
+        except (ImportError, AttributeError, Exception) as e:
+            print(f"贝塞尔路径生成失败: {e}")
+            # 如果贝塞尔路径不可用，回退到三次样条
+            return self._call_cubic_spline(start, goal, config)
+        return None
+    
+    def _call_direct_bezier_path(self, start, goal, config):
+        """直接计算贝塞尔路径（不使用A*）"""
+        try:
+            from CurvesGenerator.bezier_path import calc_4points_bezier_path
+            import numpy as np
+            
+            # 计算起始和目标的默认偏航角
+            dx = goal[0] - start[0]
+            dy = goal[1] - start[1]
+            default_yaw = np.arctan2(dy, dx)
+            
+            # 设置起始点和目标点的偏航角
+            sx, sy = start[0], start[1]
+            gx, gy = goal[0], goal[1]
+            
+            # 如果起始点包含偏航角信息，使用它；否则使用默认值
+            if len(start) >= 3:
+                syaw = start[2]
+            else:
+                syaw = default_yaw
+                
+            # 如果目标点包含偏航角信息，使用它；否则使用默认值
+            if len(goal) >= 3:
+                gyaw = goal[2]
+            else:
+                gyaw = default_yaw
+            
+            # 设置偏移参数
+            offset = config.get('offset', 3.0)
+            
+            # 调用贝塞尔路径生成函数
+            path, control_points = calc_4points_bezier_path(sx, sy, syaw, gx, gy, gyaw, offset)
+            
+            # 转换路径格式
+            if path is not None and len(path) > 0:
+                return [(float(p[0]), float(p[1])) for p in path]
+                
+        except Exception as e:
+            print(f"直接贝塞尔路径生成失败: {e}")
+        return None
+    
+    def _call_dubins_path(self, start, goal, config):
+        """调用Dubins路径生成器 - 先用A*寻找路径点，然后用Dubins曲线连接"""
+        try:
+            from CurvesGenerator.dubins_path import calc_dubins_path
+            import numpy as np
+            
+            # 首先使用A*算法获取路径点
+            astar_waypoints = self._call_astar_2d(start, goal, {'heuristic_type': 'manhattan', 'resolution': 1.0})
+            
+            if not astar_waypoints or len(astar_waypoints) < 2:
+                # 如果A*失败，使用直接连接的方法
+                return self._call_direct_dubins_path(start, goal, config)
+            
+            # 使用A*路径点作为航路点，用Dubins曲线连接
+            final_path = []
+            
+            # 计算起始和目标的默认偏航角
+            dx = goal[0] - start[0]
+            dy = goal[1] - start[1]
+            default_yaw = np.arctan2(dy, dx)
+            
+            # 处理每一段路径
+            for i in range(len(astar_waypoints) - 1):
+                current_point = astar_waypoints[i]
+                next_point = astar_waypoints[i + 1]
+                
+                # 设置当前点和下一点的偏航角
+                if i == 0:
+                    # 第一段，使用起始点的偏航角
+                    if len(start) >= 3:
+                        current_yaw = start[2]
+                    else:
+                        current_yaw = np.arctan2(next_point[1] - current_point[1], 
+                                               next_point[0] - current_point[0])
+                else:
+                    # 中间段，根据前一点计算偏航角
+                    prev_point = astar_waypoints[i - 1]
+                    current_yaw = np.arctan2(current_point[1] - prev_point[1], 
+                                           current_point[0] - prev_point[0])
+                
+                if i == len(astar_waypoints) - 2:
+                    # 最后一段，使用目标点的偏航角
+                    if len(goal) >= 3:
+                        next_yaw = goal[2]
+                    else:
+                        next_yaw = default_yaw
+                else:
+                    # 中间段，根据下一点计算偏航角
+                    if i + 2 < len(astar_waypoints):
+                        next_next_point = astar_waypoints[i + 2]
+                        next_yaw = np.arctan2(next_next_point[1] - next_point[1], 
+                                            next_next_point[0] - next_point[0])
+                    else:
+                        next_yaw = np.arctan2(next_point[1] - current_point[1], 
+                                            next_point[0] - current_point[0])
+                
+                # 生成当前段的Dubins路径
+                curvature = config.get('curvature', 0.5)
+                step_size = config.get('step_size', 0.1)
+                
+                segment_path = calc_dubins_path(
+                    current_point[0], current_point[1], current_yaw,
+                    next_point[0], next_point[1], next_yaw,
+                    curvature, step_size
+                )
+                
+                if segment_path and len(segment_path.x) > 0:
+                    segment_points = list(zip(segment_path.x, segment_path.y))
+                    
+                    # 避免重复添加连接点
+                    if final_path and len(final_path) > 0:
+                        final_path.extend(segment_points[1:])  # 跳过第一个点避免重复
+                    else:
+                        final_path.extend(segment_points)
+                else:
+                    # 如果Dubins路径失败，直接连接点
+                    if not final_path or final_path[-1] != current_point:
+                        final_path.append(current_point)
+                    final_path.append(next_point)
+            
+            return final_path if final_path else None
+            
+        except (ImportError, AttributeError, Exception) as e:
+            print(f"Dubins路径生成失败: {e}")
+            # 如果Dubins路径不可用，回退到直接方法
+            return self._call_direct_dubins_path(start, goal, config)
+    
+    def _call_direct_dubins_path(self, start, goal, config):
+        """直接调用Dubins路径生成器（不使用A*路径点）"""
+        try:
+            from CurvesGenerator.dubins_path import calc_dubins_path
+            import numpy as np
+            
+            # 默认偏航角
+            sx, sy, syaw = start[0], start[1], np.deg2rad(90)
+            gx, gy, gyaw = goal[0], goal[1], np.deg2rad(0)
+            
+            # 如果起始点和目标点包含偏航角信息
+            if len(start) >= 3:
+                syaw = start[2]
+            if len(goal) >= 3:
+                gyaw = goal[2]
+            
+            curvature = config.get('curvature', 0.5)
+            step_size = config.get('step_size', 0.1)
+            
+            path = calc_dubins_path(sx, sy, syaw, gx, gy, gyaw, curvature, step_size)
+            
+            if path and len(path.x) > 0:
+                return list(zip(path.x, path.y))
+        except (ImportError, AttributeError):
+            # 如果Dubins路径不可用，回退到三次样条
+            return self._call_cubic_spline(start, goal, config)
+        return None
     
     def _calculate_path_length(self, path: List[Tuple[float, ...]]) -> float:
         """计算路径长度"""
@@ -405,7 +906,8 @@ class PathPlannerManager:
         else:
             show_plot = False
             
-        if planner_type in [PlannerType.A_STAR_2D]:
+        if planner_type in [PlannerType.A_STAR_2D, PlannerType.BIDIRECTIONAL_A_STAR_2D, 
+                           PlannerType.CUBIC_SPLINE, PlannerType.BEZIER_PATH, PlannerType.DUBINS_PATH]:
             # Search_2D环境
             from Search_based_Planning.Search_2D.env import Env
             env = Env()
@@ -429,7 +931,8 @@ class PathPlannerManager:
             ax.legend()
             ax.set_aspect('equal')
             
-        elif planner_type in [PlannerType.RRT_STAR_2D, PlannerType.RRT_2D]:
+        elif planner_type in [PlannerType.RRT_STAR_2D, PlannerType.RRT_2D, 
+                             PlannerType.DUBINS_RRT_STAR_2D, PlannerType.RRT_STAR_SMART_2D]:
             # Sampling_2D环境
             from Sampling_based_Planning.rrt_2D.env import Env
             env = Env()
@@ -478,12 +981,12 @@ class PathPlannerManager:
     
     def visualize_environment_3d(self, planner_type: PlannerType, ax=None, title: str = "3D Environment"):
         """可视化3D环境障碍物"""
-        if planner_type in [PlannerType.A_STAR_3D]:
+        if planner_type in [PlannerType.A_STAR_3D, PlannerType.BIDIRECTIONAL_A_STAR_3D]:
             # Search_3D环境
             from Search_based_Planning.Search_3D.env3D import env
             env_3d = env()
             
-        elif planner_type in [PlannerType.RRT_CONNECT_3D, PlannerType.RRT_3D]:
+        elif planner_type in [PlannerType.RRT_CONNECT_3D, PlannerType.RRT_3D, PlannerType.ABIT_STAR_3D]:
             # Sampling_3D环境
             from Sampling_based_Planning.rrt_3D.env3D import env
             env_3d = env()
@@ -497,6 +1000,10 @@ class PathPlannerManager:
             show_plot = True
         else:
             show_plot = False
+            # 确保传入的ax已经是3D类型
+            if not hasattr(ax, 'zaxis'):
+                print("警告: 传入的ax不是3D轴，无法绘制3D图形")
+                return None, None
         
         # 绘制工作空间边界
         boundary = env_3d.boundary
@@ -646,6 +1153,7 @@ class PathPlannerManager:
             ],
             PlannerCategory.SAMPLING_BASED: [
                 PlannerType.RRT_STAR_2D,
+                PlannerType.DUBINS_RRT_STAR_2D,
                 PlannerType.RRT_CONNECT_3D,
                 PlannerType.RRT_STAR_SMART_2D,
                 PlannerType.ABIT_STAR_3D,
@@ -675,76 +1183,80 @@ if __name__ == "__main__":
     # 2D路径规划示例
     start_2d = (5.0, 5.0)
     goal_2d = (45.0, 25.0)
-    
-    print("\n--- 2D环境可视化和路径规划 ---")
-    
-    # 子图1: Search_2D环境
-    ax1 = fig.add_subplot(2, 3, 1)
-    manager.visualize_environment_2d(PlannerType.A_STAR_2D, ax1, "Search_2D Environment")
-    
-    # 子图2: Sampling_2D环境
-    ax2 = fig.add_subplot(2, 3, 2)
-    manager.visualize_environment_2d(PlannerType.RRT_STAR_2D, ax2, "Sampling_2D Environment")
-    
-    # 使用A* 2D规划器
-    path_astar_2d = manager.plan_path(start_2d, goal_2d, PlannerType.A_STAR_2D)
-    if path_astar_2d:
-        print(f"A* 2D规划成功，路径包含 {len(path_astar_2d)} 个点")
-        # 子图3: A* 2D路径规划结果
-        ax3 = fig.add_subplot(2, 3, 3)
-        manager.visualize_path_with_environment(path_astar_2d, start_2d, goal_2d, 
-                                              PlannerType.A_STAR_2D, ax3, "A* 2D Path Planning")
-    
-    # 使用RRT* 2D规划器
-    path_rrt_star_2d = manager.plan_path(start_2d, goal_2d, PlannerType.RRT_STAR_2D)
-    if path_rrt_star_2d:
-        print(f"RRT* 2D规划成功，路径包含 {len(path_rrt_star_2d)} 个点")
-        # 子图4: RRT* 2D路径规划结果
-        ax4 = fig.add_subplot(2, 3, 4)
-        manager.visualize_path_with_environment(path_rrt_star_2d, start_2d, goal_2d, 
-                                              PlannerType.RRT_STAR_2D, ax4, "RRT* 2D Path Planning")
-    plt.tight_layout()
-    plt.show()
-    exit(0)  # 退出以避免继续执行3D部分
-    
-    # 3D路径规划示例
-    start_3d = (1.0, 1.0, 1.0)
+    start_3d = (2.0, 2.0, 2.0)
     goal_3d = (18.0, 18.0, 4.0)
     
-    print("\n--- 3D环境可视化和路径规划 ---")
     
-    # 子图5: 3D环境
-    ax5 = fig.add_subplot(2, 3, 5, projection='3d')
-    manager.visualize_environment_3d(PlannerType.A_STAR_3D, ax5, "3D Environment")
+    path_astar_2d = manager.plan_path(start_2d, goal_2d, PlannerType.A_STAR_2D)
+    if path_astar_2d:
+        ax1 = fig.add_subplot(2, 3, 1)
+        manager.visualize_path_with_environment(path_astar_2d, start_2d, goal_2d, 
+                                              PlannerType.A_STAR_2D, ax1, "A* 2D Path Planning")
     
-    # 使用A* 3D规划器
-    path_astar_3d = manager.plan_path(start_3d, goal_3d, PlannerType.A_STAR_3D)
-    if path_astar_3d:
-        print(f"A* 3D规划成功，路径包含 {len(path_astar_3d)} 个点")
-        # 子图6: A* 3D路径规划结果
-        ax6 = fig.add_subplot(2, 3, 6, projection='3d')
-        manager.visualize_path_with_environment(path_astar_3d, start_3d, goal_3d, 
-                                              PlannerType.A_STAR_3D, ax6, "A* 3D Path Planning")
+    path_rrt_star_2d = manager.plan_path(start_2d, goal_2d, PlannerType.RRT_STAR_2D)
+    if path_rrt_star_2d:
+        ax2 = fig.add_subplot(2, 3, 2)
+        manager.visualize_path_with_environment(path_rrt_star_2d, start_2d, goal_2d, 
+                                              PlannerType.RRT_STAR_2D, ax2, "RRT* 2D Path Planning")
+    path_cubic_spline = manager.plan_path(start_2d, goal_2d, PlannerType.CUBIC_SPLINE)
+    if path_cubic_spline:
+        ax3 = fig.add_subplot(2, 3, 3)
+        manager.visualize_path_with_environment(path_cubic_spline, start_2d, goal_2d, 
+                                              PlannerType.CUBIC_SPLINE, ax3, "Cubic Spline Path Planning")
+    path_dubins_path = manager.plan_path(start_2d, goal_2d, PlannerType.DUBINS_PATH)
+    if path_dubins_path:
+        ax4 = fig.add_subplot(2, 3, 4)
+        manager.visualize_path_with_environment(path_dubins_path, start_2d, goal_2d, 
+                                              PlannerType.DUBINS_PATH, ax4, "Dubins Path Planning")
+    path_bezier_path = manager.plan_path(start_2d, goal_2d, PlannerType.BEZIER_PATH)
+    if path_bezier_path:
+        ax5 = fig.add_subplot(2, 3, 5)
+        manager.visualize_path_with_environment(path_bezier_path, start_2d, goal_2d, 
+                                              PlannerType.BEZIER_PATH, ax5, "Bezier Path Planning")
+    path_smart_rrt_star_2d = manager.plan_path(start_2d, goal_2d, PlannerType.RRT_STAR_SMART_2D)
+    if path_smart_rrt_star_2d:
+        ax6 = fig.add_subplot(2, 3, 6)
+        manager.visualize_path_with_environment(path_smart_rrt_star_2d, start_2d, goal_2d, 
+                                              PlannerType.RRT_STAR_SMART_2D, ax6, "Smart RRT* 2D Path Planning")
+    # path_astar_3d = manager.plan_path(start_3d, goal_3d, PlannerType.A_STAR_3D)
+    # if path_astar_3d:
+    #     print(f"A* 3D规划成功，路径包含 {len(path_astar_3d)} 个点")
+    #     ax4 = fig.add_subplot(2, 3, 4, projection='3d')
+    #     manager.visualize_path_with_environment(path_astar_3d, start_3d, goal_3d, 
+    #                                           PlannerType.A_STAR_3D, ax4, "A* 3D Path Planning")
+    # path_rrt_star_3d = manager.plan_path(start_3d, goal_3d, PlannerType.RRT_CONNECT_3D)
+    # if path_rrt_star_3d:
+    #     print(f"RRT-Connect 3D规划成功，路径包含 {len(path_rrt_star_3d)} 个点")
+    #     ax5 = fig.add_subplot(2, 3, 5, projection='3d')
+    #     manager.visualize_path_with_environment(path_rrt_star_3d, start_3d, goal_3d, 
+    #                                           PlannerType.RRT_CONNECT_3D, ax5, "RRT-Connect 3D Path Planning")
     
     # 调整子图间距并显示
-    plt.tight_layout()
+    # plt.tight_layout()
+    # plt.tight_layout(pad=2.0)
+    
+    # 保存图形到文件
+    plt.savefig('/home/yyf/PathPlanning/unified_planning_demo.png', dpi=300, bbox_inches='tight')
+    print("图形已保存到: /home/yyf/PathPlanning/unified_planning_demo.png")
+    
     plt.show()
+    # # 演示规划器性能比较
+    # print("\n=== 规划器性能比较 ===")
     
-    # 演示规划器性能比较
-    print("\n=== 规划器性能比较 ===")
+    # # 2D规划器比较
+    # print("\n--- 2D规划器比较 ---")
+    # planners_2d = [PlannerType.A_STAR_2D, PlannerType.CUBIC_SPLINE]
+    # comparison_2d = manager.compare_planners(start_2d, goal_2d, planners_2d)
     
-    # 2D规划器比较
-    print("\n--- 2D规划器比较 ---")
-    planners_2d = [PlannerType.A_STAR_2D, PlannerType.CUBIC_SPLINE]
-    comparison_2d = manager.compare_planners(start_2d, goal_2d, planners_2d)
-    
-    # 3D规划器比较  
-    print("\n--- 3D规划器比较 ---")
-    planners_3d = [PlannerType.A_STAR_3D]
-    comparison_3d = manager.compare_planners(start_3d, goal_3d, planners_3d)
+    # # 3D规划器比较  
+    # print("\n--- 3D规划器比较 ---")
+    # planners_3d = [PlannerType.A_STAR_3D]
+    # comparison_3d = manager.compare_planners(start_3d, goal_3d, planners_3d)
     
     # 显示可用的规划器
-    print("\n=== 可用规划器 ===")
+    exit(0)
+    from planner_manager import PathPlannerManager, PlannerType
+    manager = PathPlannerManager()
     available_planners = manager.get_available_planners()
     for category, planners in available_planners.items():
         print(f"{category.value}:")
@@ -752,5 +1264,3 @@ if __name__ == "__main__":
             info = manager.get_planner_info(planner)
             print(f"  - {info['name']} ({planner.value}): {info['description']}")
     
-    print("\n=== 环境可视化演示完成 ===")
-    print("现在可以直接使用各个算法原有的环境定义进行规划和可视化！")

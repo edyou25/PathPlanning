@@ -51,9 +51,10 @@ class rrt_connect():
         self.x0, self.xt = tuple(self.env.start), tuple(self.env.goal)
         self.qnew = None
         self.done = False
+        self.connection_point = None
         
         self.ind = 0
-        self.fig = plt.figure(figsize=(10, 8))
+        # self.fig = plt.figure(figsize=(10, 8))
 
 
 #----------Normal RRT algorithm
@@ -98,7 +99,7 @@ class rrt_connect():
 
 #----------RRT connect algorithm
     def CONNECT(self, Tree, q):
-        print('in connect')
+        # print('in connect')
         while True:
             S = self.EXTEND(Tree, q)
             if S != 'Advanced':
@@ -106,23 +107,27 @@ class rrt_connect():
         return S
 
     def RRT_CONNECT_PLANNER(self, qinit, qgoal):
-        Tree_A = Tree(qinit)
-        Tree_B = Tree(qgoal)
+        self.qinit = tuple(qinit)
+        self.qgoal = tuple(qgoal) 
+        Tree_A = Tree(self.qinit)
+        Tree_B = Tree(self.qgoal)
         for k in range(self.maxiter):
-            print(k)
+            # print(k)
             qrand = self.RANDOM_CONFIG()
             if self.EXTEND(Tree_A, qrand) != 'Trapped':
-                qnew = self.qnew # get qnew from outside
-                if self.CONNECT(Tree_B, qnew) == 'Reached':
-                    print('reached')
+                qnew_a = self.qnew # get qnew from Tree_A
+                if self.CONNECT(Tree_B, qnew_a) == 'Reached':
+                    # Connection successful - qnew should be the same point in both trees
+                    # print('reached')
                     self.done = True
+                    self.connection_point = qnew_a  # The connection point
                     self.Path = self.PATH(Tree_A, Tree_B)
-                    self.visualization(Tree_A, Tree_B, k)
-                    plt.show()
+                    # self.visualization(Tree_A, Tree_B, k)  # Disable visualization for now
+                    # plt.show()
                     return
                     # return
             Tree_A, Tree_B = self.SWAP(Tree_A, Tree_B)
-            self.visualization(Tree_A, Tree_B, k)
+            # self.visualization(Tree_A, Tree_B, k)
         return 'Failure'
 
     # def PATH(self, tree_a, tree_b):
@@ -131,21 +136,40 @@ class rrt_connect():
         return tree_a, tree_b
 
     def PATH(self, tree_a, tree_b):
-        qnew = self.qnew
-        patha = []
-        pathb = []
-        while True:
-            patha.append((tree_a.Parent[qnew], qnew))
-            qnew = tree_a.Parent[qnew]
-            if qnew == self.qinit or qnew == self.qgoal:
-                break
-        qnew = self.qnew
-        while True:
-            pathb.append((tree_b.Parent[qnew], qnew))
-            qnew = tree_b.Parent[qnew]
-            if qnew == self.qinit or qnew == self.qgoal:
-                break
-        return patha + pathb
+        # Reconstruct path through the connection point
+        if not self.connection_point:
+            return []
+            
+        path_a = []
+        path_b = []
+        
+        # Path from connection point to tree_a root
+        current = self.connection_point
+        while current in tree_a.Parent:
+            parent = tree_a.Parent[current]
+            path_a.append(current)
+            current = parent
+        path_a.append(current)  # Add the root
+        path_a.reverse()  # Reverse to go from root to connection point
+        
+        # Path from connection point to tree_b root
+        current = self.connection_point
+        if current in tree_b.Parent:  # Make sure connection point exists in tree_b
+            while current in tree_b.Parent:
+                parent = tree_b.Parent[current]
+                path_b.append(current)
+                current = parent
+            path_b.append(current)  # Add the root
+            # Don't reverse path_b, so it goes from connection point to root
+        
+        # Combine paths: tree_a_root -> ... -> connection_point -> ... -> tree_b_root
+        if path_b:
+            # Remove duplicate connection point
+            full_path = path_a + path_b[1:]
+        else:
+            full_path = path_a
+            
+        return full_path
 
 #----------RRT connect algorithm        
     def visualization(self, tree_a, tree_b, index):

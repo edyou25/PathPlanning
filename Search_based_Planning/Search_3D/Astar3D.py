@@ -71,7 +71,7 @@ class Weighted_A_star(object):
             if N:
                 if len(self.CLOSED) % N == 0:
                     break
-            if self.ind % 100 == 0: print('number node expanded = ' + str(len(self.V)))
+            # if self.ind % 100 == 0: print('number node expanded = ' + str(len(self.V)))
             self.ind += 1
 
         self.lastpoint = xi
@@ -80,8 +80,11 @@ class Weighted_A_star(object):
             self.done = True
             self.Path = self.path()
             if N is None:
-                visualization(self)
-                plt.show()
+                print('number node expanded = ' + str(len(self.V)))
+                print('number of nodes in OPEN = ' + str(len(self.OPEN.allnodes())))
+                print('number of nodes in CLOSED = ' + str(len(self.CLOSED)))
+                # visualization(self)
+                # plt.show()
             return True
 
         return False

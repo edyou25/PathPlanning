@@ -9,8 +9,11 @@ author: Atsushi Sakai (@Atsushi_twi)
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate as scipy_interpolate
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../Search_based_Planning/")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 from CurvesGenerator import cubic_spline as cs
-
 
 def approximate_b_spline_path(x, y, n_path_points, degree=3):
     t = range(len(x))
